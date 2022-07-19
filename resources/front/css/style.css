@@ -1,0 +1,23 @@
+body {
+    padding-top: 70px;
+}
+
+#remember{
+    margin-right: 7px;
+}
+
+.form-inline{
+    display: inline-block;
+}
+.navbar{
+    background-color: #69dd00;
+}
+.btn-primary{
+    background-color: #75e040;
+}
+.navbar-brand{
+    padding: 7px;
+}
+.navbar-brand>img{
+    display: unset!important;
+}
