@@ -13,7 +13,8 @@
                     <tr>
                         <th>Title</th>
                         <th>Description</th>
-                        <th>Likes</th>
+                        <th>Job Likes</th>
+                        <th>User Likes</th>
                         <th>Created</th>
                         <th>Updated</th>
                         <th>Action</th>
@@ -25,7 +26,8 @@
                         <tr>
                             <td>{{ $job->title }}</td>
                             <td>{{ $job->description }}</td>
-                            <td>{{ $job->likes }}</td>
+                            <td>{{ $job->upvoters_count }}</td>
+                            <td>{{ $job->user->user_votes }}</td>
                             <td>{{ $job->created_at }}</td>
                             <td>{{ $job->updated_at }}</td>
                             <td>
@@ -34,10 +36,18 @@
                                 {!! Form::submit('Response to job', ['class' => 'btn btn-success btn-xs']) !!}
                                 {!! Form::close() !!}
 
-                                {!! Form::open(['route' => ['job.destroy', $job->id], 'class' => 'form-inline', 'method' => 'delete']) !!}
+                                {!! Form::open(['route' => ['job.like'], 'class' => 'form-inline', 'method' => 'post']) !!}
                                 {!! Form::hidden('id', $job->id) !!}
-                                {!! Form::submit('Delete', ['class' => 'btn btn-danger btn-xs']) !!}
+                                {!! Form::hidden('type', 'job') !!}
+                                {!! Form::submit('Job Like', ['class' => 'btn btn-danger btn-xs','disabled'=>$job->has_upvoted]) !!}
                                 {!! Form::close() !!}
+
+                                {!! Form::open(['route' => ['job.like'], 'class' => 'form-inline', 'method' => 'post']) !!}
+                                {!! Form::hidden('id', $job->user->id) !!}
+                                {!! Form::hidden('type', 'user') !!}
+                                {!! Form::submit('User Like', ['class' => 'btn btn-danger btn-xs','disabled' => $job->user->voted]) !!}
+                                {!! Form::close() !!}
+
                             </td>
                         </tr>
                     @endforeach

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\JobApplied;
 use App\Models\Job;
 use App\Models\User;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -48,9 +49,11 @@ class JobController extends Controller
             'description' => 'required|string|min:3',
 
         ]);
-        $lastDayJobsCount = Job::with(['user' => function ($query) {
-            $query->where('coins', '>', 2);
-        }])
+        $lastDayJobsCount = Job::with([
+            'user' => function ($query) {
+                $query->where('coins', '>', 2);
+            },
+        ])
             ->where('created_at', '>=', Carbon::now()->subDay())
             ->get()
         ;
@@ -151,6 +154,31 @@ class JobController extends Controller
             ->with('flash_notification.message', $message)
             ->with('flash_notification.level', 'success')
         ;
+    }
+
+    /**
+     * Job like
+     *
+     * @param Request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function like(Request $request)
+    {
+        if ($request->type === 'job') {
+            $job = Job::find($request->id);
+            $user = Auth::user();
+            $user->upvote($job);
+        } elseif ($request->type === 'user') {
+            $voteData = [
+                'user_id' => Auth::user()->id,
+                'votes' => 1,
+                'votable_type' => 'App\Models\User',
+                'votable_id' => $request->id,
+            ];
+            Vote::firstOrCreate($voteData);
+        }
+
+        return redirect('/');
     }
 
     /**

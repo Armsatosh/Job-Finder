@@ -12,6 +12,7 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "laravelcollective/html": "^6.3",
+        "overtrue/laravel-vote": "*",
         "php-open-source-saver/jwt-auth": "^1.4",
         "predis/predis": "^2.0"
     },

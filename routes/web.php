@@ -33,5 +33,5 @@ Route::resource('user', UserController::class, ['except' => ['index', 'show', 'd
 Route::group(['middleware' => 'auth'], function () {
     Route::resource('job', JobController::class);
     Route::post('apply/{job}', [JobController::class,'jobApply'])->name('job.apply');
+    Route::post('like', [JobController::class,'like'])->name('job.like');
 });
-

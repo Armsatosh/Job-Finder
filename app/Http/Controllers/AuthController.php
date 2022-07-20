@@ -16,9 +16,11 @@ class AuthController extends Controller
      */
     public function home()
     {
+        $user = Auth::user();
         $jobsList = Cache::rememberForever('jobs', function () {
-            return  Job::paginate(5);
+            return Job::with('user')->withCount(['upvoters'])->paginate(5);
         });
+        $user->attachVoteStatus($jobsList);
 
         return view('home', compact('jobsList'));
     }
@@ -42,10 +44,11 @@ class AuthController extends Controller
      */
     public function postLogin(LoginRequest $request)
     {
-        if (Auth::attempt([
-            'email' => $request->email,
-            'password' => $request->password,
-        ], $request->get('remember'))) {
+        if (
+            Auth::attempt([
+                'email' => $request->email,
+                'password' => $request->password,
+            ], $request->get('remember'))) {
             return redirect()
                 ->intended('/')
                 ->with('flash_notification.message', 'Logged in successfully')

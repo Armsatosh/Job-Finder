@@ -19,7 +19,6 @@ class CreateJobsTable extends Migration
             $table->text('description')->nullable(false);
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->integer('likes')->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

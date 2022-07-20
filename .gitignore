@@ -17,6 +17,8 @@ public_html/hot
 
 storage/*.key
 .env
+.idea
+.php-cs-fixer.dist.php
 Homestead.yaml
 Homestead.json
 /.vagrant
