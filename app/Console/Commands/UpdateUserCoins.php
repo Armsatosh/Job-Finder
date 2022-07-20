@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Console\Commands;
 
@@ -41,6 +41,7 @@ class UpdateUserCoins extends Command
     {
         $dailyCoins = env('DAILY_COINS');
         User::whereDate('created_at', '<', Carbon::now()->subDays())
-            ->increment('coins', $dailyCoins);
+            ->increment('coins', $dailyCoins)
+        ;
     }
 }

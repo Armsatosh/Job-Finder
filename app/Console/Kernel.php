@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        'App\Console\Commands\UpdateUserCoins'
+        'App\Console\Commands\UpdateUserCoins',
     ];
 
     /**
@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-         $schedule->command('update:users')->daily();
+        $schedule->command('update:users')->daily();
     }
 
     /**

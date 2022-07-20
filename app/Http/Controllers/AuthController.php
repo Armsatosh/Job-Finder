@@ -17,7 +17,7 @@ class AuthController extends Controller
     public function home()
     {
         $jobsList = Cache::rememberForever('jobs', function () {
-            return  Job::where('user_id', Auth::id())->paginate(5);
+            return  Job::paginate(5);
         });
 
         return view('home', compact('jobsList'));

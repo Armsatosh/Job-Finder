@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Home Page
-Route::get('/', [\App\Http\Controllers\AuthController::class, 'home']);
+Route::get('/', [AuthController::class, 'home']);
 
 // Login and Logout
 Route::group(['middleware' => 'guest'], function () {
@@ -30,9 +30,8 @@ Route::get('/logout', [AuthController::class, 'logout'])->middleware(['auth']);
 Route::resource('user', UserController::class, ['except' => ['index', 'show', 'destroy']]);
 
 // Job Resources
-Route::resource('job', JobController::class)->middleware('auth');
+Route::group(['middleware' => 'auth'], function () {
+    Route::resource('job', JobController::class);
+    Route::post('apply/{job}', [JobController::class,'jobApply'])->name('job.apply');
+});
 
-// Favorite Jobs
-//Route::group(['middleware' => 'auth'], function () {
-//    Route::get('favorite', [JobController::class, 'index'])->name('favorite.index');
-//});

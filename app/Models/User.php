@@ -43,4 +43,9 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany(Job::class);
     }
+
+    public function appliedJobs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Job::class, 'users_jobs', 'user_id', 'job_id');
+    }
 }

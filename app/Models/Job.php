@@ -34,4 +34,9 @@ class Job extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function appliedUsers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'users_jobs', 'job_id', 'user_id');
+    }
 }
