@@ -24,7 +24,7 @@ Route::group(['middleware' => 'guest'], function () {
     Route::get('/login', [AuthController::class, 'getLogin']);
     Route::post('/login', [AuthController::class, 'postLogin']);
 });
-Route::get('/logout', [AuthController::class, 'logout'])->middleware(['auth']);
+Route::get('/logout', [AuthController::class, 'logout']);
 
 // Registration and User Profile
 Route::resource('user', UserController::class, ['except' => ['index', 'show', 'destroy']]);

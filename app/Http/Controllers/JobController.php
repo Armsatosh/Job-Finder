@@ -168,7 +168,11 @@ class JobController extends Controller
             $job = Job::find($request->id);
             $user = Auth::user();
             $user->upvote($job);
-        } elseif ($request->type === 'user') {
+
+            return back();
+        }
+
+        if ($request->type === 'user') {
             $voteData = [
                 'user_id' => Auth::user()->id,
                 'votes' => 1,
@@ -176,9 +180,9 @@ class JobController extends Controller
                 'votable_id' => $request->id,
             ];
             Vote::firstOrCreate($voteData);
-        }
 
-        return redirect('/');
+            return back();
+        }
     }
 
     /**

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Drivers App</title>
+    <title>Job Finder</title>
 
     {!! Html::style('css/style.css') !!}
 </head>

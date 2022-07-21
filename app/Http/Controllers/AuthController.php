@@ -20,7 +20,10 @@ class AuthController extends Controller
         $jobsList = Cache::rememberForever('jobs', function () {
             return Job::with('user')->withCount(['upvoters'])->paginate(5);
         });
-        $user->attachVoteStatus($jobsList);
+        if ($user) {
+            $user->attachVoteStatus($jobsList);
+        }
+
 
         return view('home', compact('jobsList'));
     }

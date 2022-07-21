@@ -35,7 +35,7 @@
                                 {!! Form::hidden('id', $job->id) !!}
                                 {!! Form::submit('Response to job', ['class' => 'btn btn-success btn-xs']) !!}
                                 {!! Form::close() !!}
-
+                                @if(\Auth::user())
                                 {!! Form::open(['route' => ['job.like'], 'class' => 'form-inline', 'method' => 'post']) !!}
                                 {!! Form::hidden('id', $job->id) !!}
                                 {!! Form::hidden('type', 'job') !!}
@@ -47,6 +47,7 @@
                                 {!! Form::hidden('type', 'user') !!}
                                 {!! Form::submit('User Like', ['class' => 'btn btn-danger btn-xs','disabled' => $job->user->voted]) !!}
                                 {!! Form::close() !!}
+                                @endif
 
                             </td>
                         </tr>
