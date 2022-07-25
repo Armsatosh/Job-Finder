@@ -24,7 +24,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('update:users')->daily();
+        $schedule->command('update:users')->everyMinute();
+        // php artisan schedule:run
+        //or
+        //run crone * * * * * php /var/www/html/JobFinder/artisan  update:users > '/dev/null' 2>&1
     }
 
     /**

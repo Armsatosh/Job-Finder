@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Mail\JobApplied;
 use App\Models\Job;
-use App\Models\User;
 use App\Models\Vote;
+use App\Services\JobService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
-class JobController extends Controller
+class JobController extends Controller implements JobInterface
 {
     /**
      * View Jobs listing.
@@ -42,37 +41,18 @@ class JobController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request, JobService $jobService)
     {
         $this->validate($request, [
             'title' => 'required|string|min:3',
             'description' => 'required|string|min:3',
 
         ]);
-        $lastDayJobsCount = Job::with([
-            'user' => function ($query) {
-                $query->where('coins', '>', 2);
-            },
-        ])
-            ->where('created_at', '>=', Carbon::now()->subDay())
-            ->get()
-        ;
-        $user = Auth::user();
-        if ($lastDayJobsCount->count() < 2 && ($user->coins > 2)) {
-            $user->decrement('coins', 2);
-            Job::create([
-                'title' => $request['title'],
-                'description' => $request['description'],
-                'user_id' => Auth::user()->id,
-            ]);
-            $message = 'New job created successfully';
-        } else {
-            $message = ($lastDayJobsCount->count() < 2) ? 'You dont have enough coins.' : 'You can add only two jobs per day.';
-        }
 
+        $JobCreatingStatus = $jobService->tryCreateJob($request);
 
         return redirect('/job')
-            ->with('flash_notification.message', $message)
+            ->with('flash_notification.message', $JobCreatingStatus)
             ->with('flash_notification.level', 'success')
         ;
     }
@@ -120,31 +100,11 @@ class JobController extends Controller
      * @param Job $job
      * @return  \Illuminate\Http\RedirectResponse
      */
-    public function jobApply(Job $job)
+    public function jobApply(Job $job, JobService $jobService)
     {
-        $jobId = $job->id;
-        $user = User::whereHas("appliedJobs", function ($query) use ($jobId) {
-            $query->where('users_jobs.user_id', Auth::user()->id);
-            $query->where('users_jobs.job_id', $jobId);
-        }, 0)
-            ->where('id', Auth::user()->id)
-            ->where(function ($query) {
-                $query->where('coins', '>', 0);
-            })->first();
-        if ($user) {
-            $user->decrement('coins');
-            $user->appliedJobs()->syncWithoutDetaching($jobId);
-            $mailPayload = [
-                'title' => $job->title,
-                'applicantName' => Auth::user()->name,
-                'appliedCount' => $job->appliedUsers()->count(),
-                'appliedDate' => date('Y-m-d H:i:s'),
-
-            ];
-
-            Mail::to($job->user->email)
-                ->send(new JobApplied($mailPayload))
-            ;
+        $tryApplyJob = $jobService->canUserApply($job);
+        if ($tryApplyJob) {
+            $this->sendMail($job, $this->getPayload($job));
             $message = 'Your response has been successfully sent to the vacancy creator.';
         } else {
             $message = (Auth::user()->coins > 0) ? 'You already responded to this job vacancy' : 'You dont have enough coins';
@@ -194,13 +154,41 @@ class JobController extends Controller
      */
     public function destroy($id)
     {
-        $job = Job::findOrFail($id);
-        $job->delete();
+        Job::findOrFail($id)->delete();
 
         return redirect()
             ->route('job.index')
             ->with('flash_notification.message', 'Job deleted successfully')
             ->with('flash_notification.level', 'success')
+        ;
+    }
+
+    /**
+     * @param Job $job
+     * @return array
+     */
+    public function getPayload(Job $job): array
+    {
+        $mailPayload = [
+            'title' => $job->title,
+            'applicantName' => Auth::user()->name,
+            'appliedCount' => $job->appliedUsers()->count(),
+            'appliedDate' => date('Y-m-d H:i:s'),
+
+        ];
+
+        return $mailPayload;
+    }
+
+    /**
+     * @param Job $job
+     * @param array $mailPayload
+     * @return void
+     */
+    public function sendMail(Job $job, array $mailPayload): void
+    {
+        Mail::to($job->user->email)
+            ->send(new JobApplied($mailPayload))
         ;
     }
 }
