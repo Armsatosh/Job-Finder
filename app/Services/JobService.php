@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Http\Requests\Request;
+use Illuminate\Http\Request;
 use App\Models\Job;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Auth;
 
 class JobService
 {
+    /**
+     * @param Job $job
+     * @return bool
+     */
     public function canUserApply(Job $job):bool
     {
         $jobId = $job->id;
@@ -31,6 +35,10 @@ class JobService
         return false;
     }
 
+    /**
+     * @param Request $request
+     * @return string
+     */
     public function tryCreateJob(Request $request)
     {
         $user = Auth::user();

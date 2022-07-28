@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -48,7 +50,6 @@ class JobController extends Controller implements JobInterface
             'description' => 'required|string|min:3',
 
         ]);
-
         $JobCreatingStatus = $jobService->tryCreateJob($request);
 
         return redirect('/job')
@@ -124,24 +125,26 @@ class JobController extends Controller implements JobInterface
      */
     public function like(Request $request)
     {
-        if ($request->type === 'job') {
-            $job = Job::find($request->id);
-            $user = Auth::user();
-            $user->upvote($job);
+        $user = Auth::user();
+        if ($user) {
+            if ($request->type === 'job') {
+                $job = Job::find($request->id);
+                $user->upvote($job);
 
-            return back();
-        }
+                return back();
+            }
 
-        if ($request->type === 'user') {
-            $voteData = [
-                'user_id' => Auth::user()->id,
-                'votes' => 1,
-                'votable_type' => 'App\Models\User',
-                'votable_id' => $request->id,
-            ];
-            Vote::firstOrCreate($voteData);
+            if ($request->type === 'user') {
+                $voteData = [
+                    'user_id' => $user->id,
+                    'votes' => 1,
+                    'votable_type' => 'App\Models\User',
+                    'votable_id' => $request->id,
+                ];
+                Vote::firstOrCreate($voteData);
 
-            return back();
+                return back();
+            }
         }
     }
 
