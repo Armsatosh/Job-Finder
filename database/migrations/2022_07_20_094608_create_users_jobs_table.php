@@ -19,6 +19,7 @@ class CreateUsersJobsTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedBigInteger('job_id')->nullable()->unsigned();
             $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
+            $table->timestamp('created_at')->default(\DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

@@ -7,6 +7,7 @@ use App\Models\Job;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class JobService
 {
@@ -67,5 +68,20 @@ class JobService
         }
 
         return 'you must first be logged in to be able to create a new job';
+    }
+
+    /**
+     * @param $jobId
+     * @return Carbon|int
+     */
+    public function delayTime($jobId){
+        $appliedJobLastOur = DB::table('users_jobs')
+            ->where('job_id', $jobId)
+            ->where('created_at', '>=', Carbon::now()->subHours(1)->toDateTimeString())
+            ->latest('created_at')->first('created_at');
+        if ($appliedJobLastOur ) {
+            return Carbon::parse($appliedJobLastOur->created_at)->addHour();
+        }
+        return 0;
     }
 }

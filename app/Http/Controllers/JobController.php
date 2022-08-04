@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Mail\JobApplied;
+use App\Jobs\JobApplay;
 use App\Models\Job;
 use App\Models\Vote;
 use App\Services\JobService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class JobController extends Controller implements JobInterface
 {
@@ -46,7 +46,7 @@ class JobController extends Controller implements JobInterface
     public function store(Request $request, JobService $jobService)
     {
         $this->validate($request, [
-            'title' => 'required|string|min:3',
+            'title'       => 'required|string|min:3',
             'description' => 'required|string|min:3',
 
         ]);
@@ -54,8 +54,7 @@ class JobController extends Controller implements JobInterface
 
         return redirect('/job')
             ->with('flash_notification.message', $JobCreatingStatus)
-            ->with('flash_notification.level', 'success')
-        ;
+            ->with('flash_notification.level', 'success');
     }
 
     /**
@@ -81,18 +80,17 @@ class JobController extends Controller implements JobInterface
     public function update($id, Request $request)
     {
         $this->validate($request, [
-            'title' => 'required|string|min:3',
+            'title'       => 'required|string|min:3',
             'description' => 'required|string|min:3',
         ]);
-        $job = Job::findOrFail($id);
-        $job->title = $request['title'];
+        $job              = Job::findOrFail($id);
+        $job->title       = $request['title'];
         $job->description = $request['description'];
         $job->update();
 
         return redirect('/job')
             ->with('flash_notification.message', 'Job updated successfully')
-            ->with('flash_notification.level', 'success')
-        ;
+            ->with('flash_notification.level', 'success');
     }
 
     /**
@@ -103,9 +101,10 @@ class JobController extends Controller implements JobInterface
      */
     public function jobApply(Job $job, JobService $jobService)
     {
+        $delayDuration = $jobService->delayTime($job->id);
         $tryApplyJob = $jobService->canUserApply($job);
         if ($tryApplyJob) {
-            $this->sendMail($job, $this->getPayload($job));
+            $this->sendMail($this->getPayload($job), $delayDuration);
             $message = 'Your response has been successfully sent to the vacancy creator.';
         } else {
             $message = (Auth::user()->coins > 0) ? 'You already responded to this job vacancy' : 'You dont have enough coins';
@@ -113,8 +112,7 @@ class JobController extends Controller implements JobInterface
 
         return redirect('/')
             ->with('flash_notification.message', $message)
-            ->with('flash_notification.level', 'success')
-        ;
+            ->with('flash_notification.level', 'success');
     }
 
     /**
@@ -136,10 +134,10 @@ class JobController extends Controller implements JobInterface
 
             if ($request->type === 'user') {
                 $voteData = [
-                    'user_id' => $user->id,
-                    'votes' => 1,
+                    'user_id'      => $user->id,
+                    'votes'        => 1,
                     'votable_type' => 'App\Models\User',
-                    'votable_id' => $request->id,
+                    'votable_id'   => $request->id,
                 ];
                 Vote::firstOrCreate($voteData);
 
@@ -162,8 +160,7 @@ class JobController extends Controller implements JobInterface
         return redirect()
             ->route('job.index')
             ->with('flash_notification.message', 'Job deleted successfully')
-            ->with('flash_notification.level', 'success')
-        ;
+            ->with('flash_notification.level', 'success');
     }
 
     /**
@@ -173,10 +170,12 @@ class JobController extends Controller implements JobInterface
     public function getPayload(Job $job): array
     {
         $mailPayload = [
-            'title' => $job->title,
+            'Id'            => $job->id,
+            'toEmail'       => $job->user->email,
+            'title'         => $job->title,
             'applicantName' => Auth::user()->name,
-            'appliedCount' => $job->appliedUsers()->count(),
-            'appliedDate' => date('Y-m-d H:i:s'),
+            'appliedCount'  => $job->appliedUsers()->count(),
+            'appliedDate'   => date('Y-m-d H:i:s'),
 
         ];
 
@@ -184,14 +183,11 @@ class JobController extends Controller implements JobInterface
     }
 
     /**
-     * @param Job $job
      * @param array $mailPayload
      * @return void
      */
-    public function sendMail(Job $job, array $mailPayload): void
+    public function sendMail(array $mailPayload, $delayDuration): void
     {
-        Mail::to($job->user->email)
-            ->send(new JobApplied($mailPayload))
-        ;
+        JobApplay::dispatch($mailPayload)->onQueue('JobApply')->delay($delayDuration);
     }
 }
